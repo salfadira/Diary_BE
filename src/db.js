@@ -1,4 +1,4 @@
-require("dotenv").config();
+
 const { Pool } = require("pg");
 
 // Gunakan DATABASE_URL dari Heroku
