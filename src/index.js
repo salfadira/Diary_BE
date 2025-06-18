@@ -46,31 +46,38 @@ app.get("/api/getdiary/:id", (req, res) => {
   });
 });
 
-app.put("/api/edit/:id", (req, res) => {
+app.put("/api/edit/:id", async (req, res) => {
   const id = req.params.id;
-  const sql =
-    "UPDATE diary SET title = ?, description = ?, modify_at = ? WHERE id = ?";
-  const values = [req.body.title, req.body.description, new Date(), id];
+  const { title, description } = req.body;
+  const modifyAt = new Date();
 
-  db.query(sql, values, (err, result) => {
-    if (err)
-      return res
-        .status(500)
-        .json({ message: "Something unexpected has occurred: " + err });
+  const sql =
+    "UPDATE diary SET title = $1, description = $2, modify_at = $3 WHERE id = $4";
+  const values = [title, description, modifyAt, id];
+
+  try {
+    await db.query(sql, values);
     return res.status(200).json({ success: "Diary updated successfully" });
-  });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Something unexpected has occurred: " + err.message });
+  }
 });
 
-app.delete("/api/delete/:id", (req, res) => {
+// ✅ Delete Diary (fix query)
+app.delete("/api/delete/:id", async (req, res) => {
   const id = req.params.id;
-  const sql = "DELETE FROM diary WHERE id = ?";
-  db.query(sql, [id], (err, result) => {
-    if (err)
-      return res
-        .status(500)
-        .json({ message: "Something unexpected has occurred: " + err });
+  const sql = "DELETE FROM diary WHERE id = $1";
+
+  try {
+    await db.query(sql, [id]);
     return res.status(200).json({ success: "Diary successfully deleted" });
-  });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Something unexpected has occurred: " + err.message });
+  }
 });
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
